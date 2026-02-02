@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Settings, Save, RotateCcw, AlertTriangle, Info, Sliders, Bell, Database, Cpu, Shield } from 'lucide-react';
+import { Save, RotateCcw, AlertTriangle, Info, Bell, Database, Cpu, Shield, CheckCircle } from 'lucide-react';
 
 type ParameterSection = {
   id: string;
   title: string;
-  icon: any;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   params: Parameter[];
 };
 
@@ -13,7 +13,7 @@ type Parameter = {
   label: string;
   description: string;
   type: 'number' | 'text' | 'toggle' | 'select';
-  value: any;
+  value: number | string | boolean;
   options?: string[];
   min?: number;
   max?: number;
@@ -72,8 +72,9 @@ export function Parameters() {
   const [sections, setSections] = useState(PARAMETER_SECTIONS);
   const [hasChanges, setHasChanges] = useState(false);
   const [activeSection, setActiveSection] = useState('alerts');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  const updateParam = (sectionId: string, paramId: string, value: any) => {
+  const updateParam = (sectionId: string, paramId: string, value: number | string | boolean) => {
     setSections(prev => prev.map(section => {
       if (section.id === sectionId) {
         return {
@@ -86,127 +87,159 @@ export function Parameters() {
       return section;
     }));
     setHasChanges(true);
+    setSaveStatus('idle');
   };
 
-  const handleSave = () => {
-    // Save to API
-    console.log('Saving parameters:', sections);
+  const handleSave = async () => {
+    setSaveStatus('saving');
+    // Simulate API save
+    await new Promise(resolve => setTimeout(resolve, 500));
     setHasChanges(false);
-    alert('Parameters saved successfully');
+    setSaveStatus('saved');
+    // Reset status after 3 seconds
+    setTimeout(() => setSaveStatus('idle'), 3000);
   };
 
   const handleReset = () => {
     setSections(PARAMETER_SECTIONS);
     setHasChanges(false);
+    setSaveStatus('idle');
   };
 
   const currentSection = sections.find(s => s.id === activeSection);
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Parameters</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Parameters</h1>
           <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest font-medium">
             System configuration & thresholds
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 self-start">
           {hasChanges && (
-            <span className="text-xs text-yellow-500 flex items-center gap-1">
-              <AlertTriangle size={12} />
+            <span className="text-xs text-yellow-500 flex items-center gap-1" role="status">
+              <AlertTriangle size={12} aria-hidden="true" />
               Unsaved changes
+            </span>
+          )}
+          {saveStatus === 'saved' && (
+            <span className="text-xs text-[#3FB950] flex items-center gap-1" role="status" aria-live="polite">
+              <CheckCircle size={12} aria-hidden="true" />
+              Saved successfully
             </span>
           )}
           <button
             onClick={handleReset}
-            className="px-4 py-2 bg-[#151d29] border border-white/10 text-slate-400 text-xs font-bold uppercase tracking-widest rounded hover:text-white transition-all flex items-center gap-2"
+            className="px-3 md:px-4 py-2 bg-[#151d29] border border-white/10 text-slate-400 text-xs font-bold uppercase tracking-widest rounded hover:text-white transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4fa3d1]"
+            aria-label="Reset all parameters to defaults"
           >
-            <RotateCcw size={14} />
-            Reset
+            <RotateCcw size={14} aria-hidden="true" />
+            <span className="hidden sm:inline">Reset</span>
           </button>
           <button
             onClick={handleSave}
-            disabled={!hasChanges}
-            className="px-4 py-2 bg-[#4fa3d1] text-white text-xs font-bold uppercase tracking-widest rounded hover:bg-[#4389b1] transition-all flex items-center gap-2 disabled:opacity-50"
+            disabled={!hasChanges || saveStatus === 'saving'}
+            className="px-3 md:px-4 py-2 bg-[#4fa3d1] text-white text-xs font-bold uppercase tracking-widest rounded hover:bg-[#4389b1] transition-all flex items-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4fa3d1] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1320]"
+            aria-label={saveStatus === 'saving' ? 'Saving changes...' : 'Save changes'}
           >
-            <Save size={14} />
-            Save Changes
+            <Save size={14} aria-hidden="true" />
+            <span className="hidden sm:inline">{saveStatus === 'saving' ? 'Saving...' : 'Save'}</span>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Section Navigation */}
-        <div className="command-card p-4">
-          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 px-2">Categories</h3>
-          <div className="space-y-1">
+        <nav className="command-card p-3 md:p-4" aria-label="Parameter categories">
+          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 md:mb-4 px-2">Categories</h3>
+          <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible">
             {sections.map((section) => {
               const Icon = section.icon;
               return (
                 <button
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-all ${
+                  className={`flex items-center gap-2 md:gap-3 px-3 py-2 md:py-2.5 rounded text-xs md:text-sm transition-all whitespace-nowrap lg:w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4fa3d1] ${
                     activeSection === section.id
-                      ? 'bg-[#4fa3d1]/10 text-[#4fa3d1] border-l-2 border-[#4fa3d1]'
+                      ? 'bg-[#4fa3d1]/10 text-[#4fa3d1] lg:border-l-2 lg:border-[#4fa3d1]'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
+                  aria-pressed={activeSection === section.id}
+                  aria-label={`${section.title} settings`}
                 >
-                  <Icon size={16} />
+                  <Icon size={16} aria-hidden="true" />
                   <span className="font-medium">{section.title}</span>
                 </button>
               );
             })}
           </div>
-        </div>
+        </nav>
 
         {/* Parameter Editor */}
-        <div className="lg:col-span-3 command-card p-6">
+        <div className="lg:col-span-3 command-card p-4 md:p-6">
           {currentSection && (
             <>
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
-                <currentSection.icon size={20} className="text-[#4fa3d1]" />
-                <h3 className="text-lg font-bold text-white">{currentSection.title}</h3>
+              <div className="flex items-center gap-3 mb-4 md:mb-6 pb-3 md:pb-4 border-b border-white/5">
+                <currentSection.icon size={20} className="text-[#4fa3d1]" aria-hidden="true" />
+                <h2 className="text-base md:text-lg font-bold text-white">{currentSection.title}</h2>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {currentSection.params.map((param) => (
-                  <div key={param.id} className="flex items-start justify-between gap-8 pb-4 border-b border-white/5">
+                  <div
+                    key={param.id}
+                    className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-8 pb-4 border-b border-white/5"
+                  >
                     <div className="flex-1">
-                      <label className="text-sm font-medium text-white block mb-1">{param.label}</label>
+                      <label
+                        htmlFor={`param-${param.id}`}
+                        className="text-sm font-medium text-white block mb-1"
+                      >
+                        {param.label}
+                      </label>
                       <p className="text-xs text-slate-500">{param.description}</p>
                     </div>
-                    <div className="w-48">
+                    <div className="w-full md:w-48 shrink-0">
                       {param.type === 'number' && (
                         <div className="flex items-center gap-2">
                           <input
+                            id={`param-${param.id}`}
                             type="number"
-                            value={param.value}
+                            value={param.value as number}
                             onChange={(e) => updateParam(currentSection.id, param.id, parseFloat(e.target.value))}
                             min={param.min}
                             max={param.max}
-                            step={param.value < 1 ? 0.01 : 1}
-                            className="w-full px-3 py-2 bg-[#151d29] border border-white/10 rounded text-white text-sm focus:outline-none focus:border-[#4fa3d1]"
+                            step={(param.value as number) < 1 ? 0.01 : 1}
+                            className="w-full px-3 py-2 bg-[#151d29] border border-white/10 rounded text-white text-sm focus:outline-none focus:border-[#4fa3d1] focus:ring-1 focus:ring-[#4fa3d1]"
+                            aria-describedby={param.unit ? `${param.id}-unit` : undefined}
                           />
-                          {param.unit && <span className="text-xs text-slate-500 whitespace-nowrap">{param.unit}</span>}
+                          {param.unit && (
+                            <span id={`${param.id}-unit`} className="text-xs text-slate-500 whitespace-nowrap">
+                              {param.unit}
+                            </span>
+                          )}
                         </div>
                       )}
 
                       {param.type === 'text' && (
                         <input
+                          id={`param-${param.id}`}
                           type="text"
-                          value={param.value}
+                          value={param.value as string}
                           onChange={(e) => updateParam(currentSection.id, param.id, e.target.value)}
-                          className="w-full px-3 py-2 bg-[#151d29] border border-white/10 rounded text-white text-sm focus:outline-none focus:border-[#4fa3d1]"
+                          className="w-full px-3 py-2 bg-[#151d29] border border-white/10 rounded text-white text-sm focus:outline-none focus:border-[#4fa3d1] focus:ring-1 focus:ring-[#4fa3d1]"
                         />
                       )}
 
                       {param.type === 'select' && (
                         <select
-                          value={param.value}
+                          id={`param-${param.id}`}
+                          value={param.value as string}
                           onChange={(e) => updateParam(currentSection.id, param.id, e.target.value)}
-                          className="w-full px-3 py-2 bg-[#151d29] border border-white/10 rounded text-white text-sm focus:outline-none focus:border-[#4fa3d1]"
+                          className="w-full px-3 py-2 bg-[#151d29] border border-white/10 rounded text-white text-sm focus:outline-none focus:border-[#4fa3d1] focus:ring-1 focus:ring-[#4fa3d1]"
                         >
                           {param.options?.map((opt) => (
                             <option key={opt} value={opt}>{opt}</option>
@@ -216,14 +249,21 @@ export function Parameters() {
 
                       {param.type === 'toggle' && (
                         <button
-                          onClick={() => updateParam(currentSection.id, param.id, !param.value)}
-                          className={`relative w-12 h-6 rounded-full transition-colors ${
+                          id={`param-${param.id}`}
+                          onClick={() => updateParam(currentSection.id, param.id, !(param.value as boolean))}
+                          role="switch"
+                          aria-checked={param.value as boolean}
+                          aria-label={`${param.label}: ${param.value ? 'enabled' : 'disabled'}`}
+                          className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4fa3d1] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1624] ${
                             param.value ? 'bg-[#4fa3d1]' : 'bg-slate-700'
                           }`}
                         >
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                            param.value ? 'translate-x-7' : 'translate-x-1'
-                          }`} />
+                          <div
+                            className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                              param.value ? 'translate-x-7' : 'translate-x-1'
+                            }`}
+                            aria-hidden="true"
+                          />
                         </button>
                       )}
                     </div>
@@ -236,8 +276,11 @@ export function Parameters() {
       </div>
 
       {/* Info Box */}
-      <div className="command-card p-4 border-[#4fa3d1]/20 bg-[#4fa3d1]/5 flex items-start gap-3">
-        <Info size={16} className="text-[#4fa3d1] mt-0.5" />
+      <div
+        className="command-card p-3 md:p-4 border-[#4fa3d1]/20 bg-[#4fa3d1]/5 flex items-start gap-3"
+        role="note"
+      >
+        <Info size={16} className="text-[#4fa3d1] mt-0.5 shrink-0" aria-hidden="true" />
         <div>
           <p className="text-sm text-white font-medium">Configuration Note</p>
           <p className="text-xs text-slate-400 mt-1">

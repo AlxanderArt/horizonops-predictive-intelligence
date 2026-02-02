@@ -11,7 +11,6 @@ import {
   Clock,
   User
 } from 'lucide-react';
-import { API_BASE } from '../config';
 
 type SecurityEvent = {
   id: string;
@@ -62,91 +61,108 @@ export function SecurityCore() {
   };
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Security Core</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Security Core</h1>
           <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest font-medium">
-            System security monitoring & access control
+            System security monitoring
           </p>
         </div>
-        <div className={`px-4 py-2 rounded border flex items-center gap-3 ${
-          activeThreats === 0
-            ? 'border-[#3FB950]/20 bg-[#3FB950]/5 text-[#3FB950]'
-            : 'border-orange-500/20 bg-orange-500/5 text-orange-500'
-        }`}>
-          <Shield size={16} />
+        <div
+          className={`px-3 md:px-4 py-2 rounded border flex items-center gap-2 md:gap-3 self-start ${
+            activeThreats === 0
+              ? 'border-[#3FB950]/20 bg-[#3FB950]/5 text-[#3FB950]'
+              : 'border-orange-500/20 bg-orange-500/5 text-orange-500'
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          <Shield size={16} aria-hidden="true" />
           <span className="text-xs font-bold uppercase tracking-widest">
-            {activeThreats === 0 ? 'SECURE' : `${activeThreats} ACTIVE THREATS`}
+            {activeThreats === 0 ? 'SECURE' : `${activeThreats} THREATS`}
           </span>
         </div>
       </div>
 
       {/* Security Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="command-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Shield size={24} className="text-[#4fa3d1]" />
-            <span className="text-[10px] px-2 py-1 bg-[#3FB950]/10 text-[#3FB950] rounded font-bold">HEALTHY</span>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <article className="command-card p-4 md:p-6" aria-label={`Security Score: ${securityScore}%`}>
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <Shield size={20} className="text-[#4fa3d1]" aria-hidden="true" />
+            <span className="text-xs px-2 py-1 bg-[#3FB950]/10 text-[#3FB950] rounded font-bold">HEALTHY</span>
           </div>
-          <div className="text-3xl font-bold text-white">{securityScore}%</div>
-          <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Security Score</div>
-        </div>
+          <div className="text-2xl md:text-3xl font-bold text-white">{securityScore}%</div>
+          <div className="text-xs text-slate-500 uppercase tracking-widest mt-1">Security Score</div>
+        </article>
 
-        <div className="command-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Lock size={24} className="text-[#4fa3d1]" />
+        <article className="command-card p-4 md:p-6" aria-label="Encryption Level: 256-bit">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <Lock size={20} className="text-[#4fa3d1]" aria-hidden="true" />
           </div>
-          <div className="text-3xl font-bold text-white">256-bit</div>
-          <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Encryption Level</div>
-        </div>
+          <div className="text-2xl md:text-3xl font-bold text-white">256-bit</div>
+          <div className="text-xs text-slate-500 uppercase tracking-widest mt-1">Encryption</div>
+        </article>
 
-        <div className="command-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Key size={24} className="text-[#4fa3d1]" />
+        <article className="command-card p-4 md:p-6" aria-label="Active Sessions: 12">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <Key size={20} className="text-[#4fa3d1]" aria-hidden="true" />
           </div>
-          <div className="text-3xl font-bold text-white">12</div>
-          <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Active Sessions</div>
-        </div>
+          <div className="text-2xl md:text-3xl font-bold text-white">12</div>
+          <div className="text-xs text-slate-500 uppercase tracking-widest mt-1">Sessions</div>
+        </article>
 
-        <div className="command-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <AlertTriangle size={24} className={activeThreats > 0 ? 'text-orange-500' : 'text-[#3FB950]'} />
+        <article className="command-card p-4 md:p-6" aria-label={`Active Threats: ${activeThreats}`}>
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <AlertTriangle size={20} className={activeThreats > 0 ? 'text-orange-500' : 'text-[#3FB950]'} aria-hidden="true" />
           </div>
-          <div className={`text-3xl font-bold ${activeThreats > 0 ? 'text-orange-500' : 'text-[#3FB950]'}`}>
+          <div className={`text-2xl md:text-3xl font-bold ${activeThreats > 0 ? 'text-orange-500' : 'text-[#3FB950]'}`}>
             {activeThreats}
           </div>
-          <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Active Threats</div>
-        </div>
+          <div className="text-xs text-slate-500 uppercase tracking-widest mt-1">Threats</div>
+        </article>
       </div>
 
-      {/* Security Policies */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 command-card p-6">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-6">Security Event Log</h3>
-          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+      {/* Security Event Log & Policies */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="lg:col-span-2 command-card p-4 md:p-6">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-4 md:mb-6">Security Event Log</h3>
+          <div
+            className="space-y-2 md:space-y-3 max-h-[300px] md:max-h-[400px] overflow-y-auto"
+            role="log"
+            aria-label="Security events"
+          >
+            {events.length === 0 && (
+              <p className="text-slate-500 text-sm italic py-4 text-center">No security events to display.</p>
+            )}
             {events.map((event) => {
               const Icon = getTypeIcon(event.type);
               return (
-                <div key={event.id} className="flex items-start gap-4 p-3 bg-white/[0.02] rounded border border-white/5 hover:bg-white/[0.04] transition-colors">
-                  <div className={`p-2 rounded ${getSeverityColor(event.severity)}`}>
-                    <Icon size={14} />
+                <div
+                  key={event.id}
+                  className="flex items-start gap-3 md:gap-4 p-2 md:p-3 bg-white/[0.02] rounded border border-white/5 hover:bg-white/[0.04] transition-colors"
+                >
+                  <div className={`p-1.5 md:p-2 rounded shrink-0 ${getSeverityColor(event.severity)}`}>
+                    <Icon size={14} aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-white font-medium">{event.message}</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm text-white font-medium break-all">{event.message}</span>
                       {!event.resolved && (
-                        <span className="text-[9px] px-1.5 py-0.5 bg-orange-500/20 text-orange-500 rounded font-bold uppercase">Unresolved</span>
+                        <span className="text-xs px-1.5 py-0.5 bg-orange-500/20 text-orange-500 rounded font-bold uppercase shrink-0">
+                          Unresolved
+                        </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 mt-1 text-[10px] text-slate-500">
+                    <div className="flex flex-wrap items-center gap-3 md:gap-4 mt-1 text-xs text-slate-500">
                       <span className="flex items-center gap-1">
-                        <Clock size={10} />
+                        <Clock size={10} aria-hidden="true" />
                         {new Date(event.timestamp).toLocaleTimeString()}
                       </span>
                       {event.user && (
                         <span className="flex items-center gap-1">
-                          <User size={10} />
+                          <User size={10} aria-hidden="true" />
                           {event.user}
                         </span>
                       )}
@@ -155,11 +171,11 @@ export function SecurityCore() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center shrink-0">
                     {event.resolved ? (
-                      <CheckCircle size={16} className="text-[#3FB950]" />
+                      <CheckCircle size={16} className="text-[#3FB950]" aria-label="Resolved" />
                     ) : (
-                      <XCircle size={16} className="text-slate-600" />
+                      <XCircle size={16} className="text-slate-600" aria-label="Unresolved" />
                     )}
                   </div>
                 </div>
@@ -168,23 +184,23 @@ export function SecurityCore() {
           </div>
         </div>
 
-        <div className="command-card p-6">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-6">Access Policies</h3>
-          <div className="space-y-4">
+        <div className="command-card p-4 md:p-6">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-4 md:mb-6">Access Policies</h3>
+          <div className="space-y-3 md:space-y-4">
             <PolicyItem label="MFA Required" status="enabled" />
             <PolicyItem label="Session Timeout" status="30 min" />
             <PolicyItem label="IP Whitelist" status="enabled" />
-            <PolicyItem label="API Rate Limiting" status="100/min" />
+            <PolicyItem label="Rate Limiting" status="100/min" />
             <PolicyItem label="Audit Logging" status="enabled" />
-            <PolicyItem label="Data Encryption" status="AES-256" />
+            <PolicyItem label="Encryption" status="AES-256" />
           </div>
         </div>
       </div>
 
       {/* Network Security */}
-      <div className="command-card p-6">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-6">Network Security Status</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="command-card p-4 md:p-6">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-4 md:mb-6">Network Security Status</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <NetworkStatus label="Firewall" status="active" value="2,341 blocked" />
           <NetworkStatus label="IDS/IPS" status="active" value="0 intrusions" />
           <NetworkStatus label="VPN Gateway" status="active" value="8 tunnels" />
@@ -209,12 +225,18 @@ function PolicyItem({ label, status }: { label: string; status: string }) {
 
 function NetworkStatus({ label, status, value }: { label: string; status: string; value: string }) {
   return (
-    <div className="bg-white/[0.02] p-4 rounded border border-white/5">
+    <article
+      className="bg-white/[0.02] p-3 md:p-4 rounded border border-white/5"
+      aria-label={`${label}: ${value}, ${status}`}
+    >
       <div className="flex items-center gap-2 mb-2">
-        <div className={`w-2 h-2 rounded-full ${status === 'active' ? 'bg-[#3FB950]' : 'bg-red-500'}`} />
-        <span className="text-[10px] text-slate-500 uppercase font-bold">{label}</span>
+        <div
+          className={`w-2 h-2 rounded-full ${status === 'active' ? 'bg-[#3FB950]' : 'bg-red-500'}`}
+          aria-hidden="true"
+        />
+        <span className="text-xs text-slate-500 uppercase font-bold">{label}</span>
       </div>
       <div className="text-sm font-medium text-white">{value}</div>
-    </div>
+    </article>
   );
 }
